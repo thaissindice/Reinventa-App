@@ -1,0 +1,8 @@
+{
+  "articles": [
+    { "id": 1, "title": "Primeiro post", "excerpt": "Resumo do primeiro post", "body": "<h1>Primeiro post</h1><p>Conteúdo...</p>" },
+    { "id": 2, "title": "Segundo post", "excerpt": "Resumo do segundo post", "body": "<h1>Segundo post</h1><p>Conteúdo...</p>" },
+    { "id": 3, "title": "Dica de viagem", "excerpt": "Resumo da dica", "body": "<h1>Dica</h1><p>Conteúdo...</p>" }
+  ],
+  "user": { "id": 1, "name": "Thais", "email": "thais@example.com" }
+}

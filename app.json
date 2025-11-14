@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "reinventa",
+    "slug": "reinventa",
+    "scheme": "reinventaplus",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": ["ios", "android"],
+    "sdkVersion": "51.0.0",
+    "extra": {
+      "apiUrl": "http://192.168.0.10:4000"
+    }
+  }
+}
