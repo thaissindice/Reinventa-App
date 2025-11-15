@@ -1,4 +1,6 @@
+// App.tsx
 import React from "react";
+import { View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
@@ -9,14 +11,16 @@ export type { RootStackParamList } from "./src/navigation/RootNavigator";
 
 const queryClient = new QueryClient();
 
-export default function App(): JSX.Element {
-  // carregamento de fontes (dentro do componente!!!)
+export default function App() {
   const [fontsLoaded] = useFonts({
     "Nunito-Regular": require("./assets/fonts/Nunito-VariableFont_wght.ttf"),
     "Nunito-Bold": require("./assets/fonts/Nunito-Italic-VariableFont_wght.ttf"),
   });
 
-  if (!fontsLoaded) return null;
+  
+  if (!fontsLoaded) {
+    return <View />; 
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

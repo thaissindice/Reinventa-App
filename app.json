@@ -14,7 +14,8 @@
       "apiUrl": "http://192.168.0.10:4000"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font"
     ]
   }
 }
