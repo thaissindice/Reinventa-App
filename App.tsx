@@ -1,32 +1,27 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import SignInScreen from "./src/features/auth/SignInScreen";
-import HomeScreen from "./src/features/home/HomeScreen";
-import FeedScreen from "./src/features/feed/FeedScreen";
-import ArticleScreen from "./src/features/article/ArticleScreen";
+import { useFonts } from "expo-font";
+import RootNavigator from "./src/navigation/RootNavigator";
 
-export type RootStackParamList = {
-  SignIn: undefined;
-  Home: undefined;
-  Feed: undefined;
-  Article: undefined;
-};
+// Re-exporta o tipo das rotas (caso outras telas importem de App)
+export type { RootStackParamList } from "./src/navigation/RootNavigator";
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
 const queryClient = new QueryClient();
 
-export default function App() {
+export default function App(): JSX.Element {
+  // carregamento de fontes (dentro do componente!!!)
+  const [fontsLoaded] = useFonts({
+    "Nunito-Regular": require("./assets/fonts/Nunito-VariableFont_wght.ttf"),
+    "Nunito-Bold": require("./assets/fonts/Nunito-Italic-VariableFont_wght.ttf"),
+  });
+
+  if (!fontsLoaded) return null;
+
   return (
     <QueryClientProvider client={queryClient}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="SignIn">
-          <Stack.Screen name="SignIn" component={SignInScreen} options={{ title: "Entrar" }} />
-          <Stack.Screen name="Home" component={HomeScreen} options={{ title: "Reinventa+" }} />
-          <Stack.Screen name="Feed" component={FeedScreen} options={{ title: "Feed" }} />
-          <Stack.Screen name="Article" component={ArticleScreen} options={{ title: "Artigo" }} />
-        </Stack.Navigator>
+        <RootNavigator />
       </NavigationContainer>
     </QueryClientProvider>
   );
