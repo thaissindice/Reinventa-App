@@ -1,3 +1,4 @@
+// src/features/auth/SignInScreen.tsx
 import React, { useState } from "react";
 import {
   SafeAreaView,
@@ -12,6 +13,7 @@ import {
   ScrollView,
   Alert,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import Checkbox from "expo-checkbox";
 import { Feather } from "@expo/vector-icons";
@@ -34,84 +36,84 @@ export default function SignInScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
 
   async function handleSignIn() {
-  if (!email || !password) {
-    Alert.alert("Preencha os campos");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    // Tenta login REAL via backend
-    const res = await fetch(`${SITE_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (res.ok) {
-      const json = await res.json();
-      const user = json?.user ?? null;
-      const token = json?.token ?? null;
-
-      if (!user) {
-        Alert.alert("Resposta inválida do servidor.");
-        return;
-      }
-
-            const role = (user?.role ?? "").toString().toLowerCase();
-      const rolePath = role.includes("mentor")
-        ? "/mentor"
-        : role.includes("candidate") || role.includes("aprendiz")
-        ? "/aprendiz"
-        : "/";
-
-      const encodedUser = encodeURIComponent(JSON.stringify(user));
-      const encodedToken = token ? encodeURIComponent(token) : "";
-
-      const autoUrl = `${SITE_URL}/autologin?user=${encodedUser}&token=${encodedToken}&redirect=${encodeURIComponent(
-        rolePath
-      )}`;
-
-
-      await WebBrowser.openBrowserAsync(autoUrl);
+    if (!email || !password) {
+      Alert.alert("Preencha os campos");
       return;
     }
 
-    // Se resposta 401 → usar fallback do site (credenciais de demonstração)
-    if (res.status === 401) {
-      // LOGIN DEMO — igual a página do site
-      if (email === "mentor" && password === "123456") {
-        const user = { email: "mentor", name: "Mentor Demo", role: "mentor" };
-        const autoUrl = `${SITE_URL}/autologin?user=${encodeURIComponent(
-          JSON.stringify(user)
-        )}&redirect=/mentor`;
+    setLoading(true);
+    try {
+      // Tenta login REAL via backend
+      const res = await fetch(`${SITE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const user = json?.user ?? null;
+        const token = json?.token ?? null;
+
+        if (!user) {
+          Alert.alert("Resposta inválida do servidor.");
+          return;
+        }
+
+        // decide a rota baseada na role (aqui usamos redirect geral; site faz o resto)
+        const role = (user?.role ?? "").toString().toLowerCase();
+        const rolePath = role.includes("mentor")
+          ? "/mentor"
+          : role.includes("candidate") || role.includes("aprendiz")
+          ? "/aprendiz"
+          : "/dashboard";
+
+        const encodedUser = encodeURIComponent(JSON.stringify(user));
+        const encodedToken = token ? encodeURIComponent(token) : "";
+
+        const autoUrl = `${SITE_URL}/autologin?user=${encodedUser}&token=${encodedToken}&redirect=${encodeURIComponent(
+          rolePath
+        )}`;
 
         await WebBrowser.openBrowserAsync(autoUrl);
         return;
       }
 
-      if (email === "aprendiz" && password === "123456") {
-        const user = { email: "aprendiz", name: "Aprendiz Demo", role: "candidate" };
-        const autoUrl = `${SITE_URL}/autologin?user=${encodeURIComponent(
-          JSON.stringify(user)
-        )}&redirect=/aprendiz`;
+      // Se resposta 401 → usar fallback do site (credenciais de demonstração)
+      if (res.status === 401) {
+        // LOGIN DEMO — igual a página do site
+        if (email === "mentor" && password === "123456") {
+          const user = { email: "mentor", name: "Mentor Demo", role: "mentor" };
+          const autoUrl = `${SITE_URL}/autologin?user=${encodeURIComponent(
+            JSON.stringify(user)
+          )}&redirect=/mentor`;
 
-        await WebBrowser.openBrowserAsync(autoUrl);
+          await WebBrowser.openBrowserAsync(autoUrl);
+          return;
+        }
+
+        if (email === "aprendiz" && password === "123456") {
+          const user = { email: "aprendiz", name: "Aprendiz Demo", role: "candidate" };
+          const autoUrl = `${SITE_URL}/autologin?user=${encodeURIComponent(
+            JSON.stringify(user)
+          )}&redirect=/aprendiz`;
+
+          await WebBrowser.openBrowserAsync(autoUrl);
+          return;
+        }
+
+        Alert.alert("Credenciais inválidas");
         return;
       }
 
-      Alert.alert("Credenciais inválidas");
-      return;
+      Alert.alert("Erro no login");
+    } catch (err) {
+      console.error("Erro no login:", err);
+      Alert.alert("Erro ao autenticar. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-
-    Alert.alert("Erro no login");
-  } catch (err) {
-    console.error("Erro no login:", err);
-    Alert.alert("Erro ao autenticar. Tente novamente.");
-  } finally {
-    setLoading(false);
   }
-}
 
   // demo credentials exibidas no topo (estático — pode remover se não quiser)
   const demoMentor = { user: "mentor", pass: "123456" };
@@ -185,8 +187,17 @@ export default function SignInScreen({ navigation }: any) {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleSignIn} disabled={loading} activeOpacity={0.8}>
-                <Text style={styles.buttonText}>{loading ? "Entrando..." : "Entrar"}</Text>
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleSignIn}
+                disabled={loading}
+                activeOpacity={0.8}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Entrar</Text>
+                )}
               </TouchableOpacity>
 
               <View style={styles.footerRow}>
@@ -222,9 +233,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 20,
   },
-  demoTitle: { color: "#3B3B99", fontWeight: "700", marginBottom: 6, fontSize: 16 },
-  demoLine: { color: "#2E3A59", fontSize: 14, marginTop: 6 },
-  demoLabel: { fontWeight: "800", color: "#2E3A59" },
+  demoTitle: { color: "#3B3B99", fontFamily: "Nunito_700Bold", marginBottom: 6, fontSize: 16 },
+  demoLine: { color: "#2E3A59", fontSize: 14, marginTop: 6, fontFamily: "Nunito_400Regular" },
+  demoLabel: { fontFamily: "Nunito_700Bold", color: "#2E3A59" },
 
   card: {
     width: "100%",
@@ -239,13 +250,14 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 6,
   },
-  cardTitle: { fontSize: 28, fontWeight: "800", color: "#17233A", textAlign: "center" },
+  cardTitle: { fontSize: 28, fontFamily: "Nunito_800ExtraBold", color: "#17233A", textAlign: "center" },
   cardSubtitle: {
     textAlign: "center",
     color: "#6B7280",
     marginTop: 8,
     fontSize: 15,
     lineHeight: 20,
+    fontFamily: "Nunito_400Regular",
   },
 
   inputWrap: {
@@ -259,6 +271,7 @@ const styles = StyleSheet.create({
     backgroundColor: INPUT_BG,
     borderWidth: 0,
     color: "#17233A",
+    fontFamily: "Nunito_400Regular",
   },
   showButton: {
     position: "absolute",
@@ -269,7 +282,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 8,
   },
-  showText: { color: "#374151", fontWeight: "700" },
+  showText: { color: "#374151", fontFamily: "Nunito_700Bold" },
 
   rowBetween: {
     flexDirection: "row",
@@ -278,9 +291,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   rememberRow: { flexDirection: "row", alignItems: "center" },
-  rememberText: { color: "#374151", marginLeft: 8, fontSize: 15 },
+  rememberText: { color: "#374151", marginLeft: 8, fontSize: 15, fontFamily: "Nunito_400Regular" },
 
-  forgot: { color: "#6B7280", fontSize: 14, fontWeight: "600" },
+  forgot: { color: "#6B7280", fontSize: 14, fontFamily: "Nunito_700Bold" },
 
   button: {
     marginTop: 18,
@@ -293,7 +306,7 @@ const styles = StyleSheet.create({
   buttonDisabled: { opacity: 0.7 },
   buttonText: {
     color: "#fff",
-    fontWeight: "800",
+    fontFamily: "Nunito_800ExtraBold",
     fontSize: 18,
   },
 
@@ -303,6 +316,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  noAccount: { color: "#6B7280", fontSize: 14 },
-  link: { color: PRIMARY, fontWeight: "700" },
+  noAccount: { color: "#6B7280", fontSize: 14, fontFamily: "Nunito_400Regular" },
+  link: { color: PRIMARY, fontFamily: "Nunito_700Bold" },
 });
